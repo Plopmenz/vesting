@@ -61,7 +61,7 @@ contract SingleAddressLinearERC20MintVestingTest is Test {
         vm.assertEq(vesting.releasable(), 0);
     }
 
-    function test_beforeStart(uint96 amount, uint64 start, uint64 duration, address beneficiary) public {
+    function test_beneficiary(uint96 amount, uint64 start, uint64 duration, address beneficiary) public {
         SingleAddressLinearERC20MintVesting vesting =
             new SingleAddressLinearERC20MintVesting(erc20, amount, start, duration, beneficiary);
         vm.assertEq(vesting.beneficiary(), beneficiary);

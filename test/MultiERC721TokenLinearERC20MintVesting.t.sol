@@ -39,7 +39,7 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
         uint16 timeAgoStarted,
         address beneficiary
     ) public {
-        vm.assume(beneficiary.code.length == 0); // ERC721 receiver
+        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         (MultiERC721TokenLinearERC20MintVesting vesting, uint96 expected) =
             getVesting(amount, duration, timePassed, timeAgoStarted);
         erc721.mint(beneficiary, tokenId);
@@ -54,7 +54,7 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
         uint16 timeAgoStarted,
         address beneficiary
     ) public {
-        vm.assume(beneficiary.code.length == 0); // ERC721 receiver
+        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         (MultiERC721TokenLinearERC20MintVesting vesting, uint96 expected) =
             getVesting(amount, duration, timePassed, timeAgoStarted);
         erc721.mint(beneficiary, tokenId);
@@ -65,7 +65,7 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
     function test_beforeStart(uint256 tokenId, uint80 amount, uint16 duration, uint16 startsIn, address beneficiary)
         public
     {
-        vm.assume(beneficiary.code.length == 0); // ERC721 receiver
+        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         vm.assume(duration != 0);
         MultiERC721TokenLinearERC20MintVesting vesting = new MultiERC721TokenLinearERC20MintVesting(
             erc20, amount, uint64(block.timestamp + startsIn), duration, erc721
@@ -74,10 +74,10 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
         vm.assertEq(vesting.releasable(tokenId), 0);
     }
 
-    function test_beforeStart(uint256 tokenId, uint96 amount, uint64 start, uint64 duration, address beneficiary)
+    function test_beneficiary(uint256 tokenId, uint96 amount, uint64 start, uint64 duration, address beneficiary)
         public
     {
-        vm.assume(beneficiary.code.length == 0); // ERC721 receiver
+        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         MultiERC721TokenLinearERC20MintVesting vesting =
             new MultiERC721TokenLinearERC20MintVesting(erc20, amount, start, duration, erc721);
         erc721.mint(beneficiary, tokenId);

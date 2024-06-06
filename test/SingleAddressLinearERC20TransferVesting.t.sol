@@ -59,12 +59,14 @@ contract SingleAddressLinearERC20TransferVestingTest is Test {
         SingleAddressLinearERC20TransferVesting vesting = new SingleAddressLinearERC20TransferVesting(
             erc20, amount, uint64(block.timestamp + startsIn), duration, beneficiary
         );
+        erc20.mint(address(vesting), type(uint256).max);
         vm.assertEq(vesting.releasable(), 0);
     }
 
-    function test_beforeStart(uint96 amount, uint64 start, uint64 duration, address beneficiary) public {
+    function test_beneficiary(uint96 amount, uint64 start, uint64 duration, address beneficiary) public {
         SingleAddressLinearERC20TransferVesting vesting =
             new SingleAddressLinearERC20TransferVesting(erc20, amount, start, duration, beneficiary);
+        erc20.mint(address(vesting), type(uint256).max);
         vm.assertEq(vesting.beneficiary(), beneficiary);
     }
 }
