@@ -11,12 +11,14 @@ contract MerkleERC721TokenLinearERC20MintVesting is ERC20MintReward, MerkleToken
 
     constructor(
         IERC20Mintable _token,
-        uint96 _amount,
+        uint128 _amount,
         uint64 _start,
         uint64 _duration,
         bytes32 _merkletreeRoot,
         IERC721 _ownerToken
-    ) ERC20MintReward(_token) MerkleTokenLinearVesting(_amount, _start, _duration, _merkletreeRoot) {
+    ) {
+        __ERC20MintReward_init(_token);
+        __MerkleTokenLinearVesting_init(_amount, _start, _duration, _merkletreeRoot);
         ownerToken = _ownerToken;
     }
 
@@ -25,7 +27,7 @@ contract MerkleERC721TokenLinearERC20MintVesting is ERC20MintReward, MerkleToken
         return ownerToken.ownerOf(_tokenId);
     }
 
-    function reward(address _beneficiary, uint96 _amount)
+    function reward(address _beneficiary, uint128 _amount)
         internal
         virtual
         override(ERC20MintReward, MerkleTokenLinearVesting)

@@ -9,10 +9,9 @@ import {IERC721} from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC
 contract MultiERC721TokenLinearERC20TransferVesting is ERC20TransferReward, MultiTokenLinearVesting {
     IERC721 public immutable ownerToken;
 
-    constructor(IERC20 _token, uint96 _amount, uint64 _start, uint64 _duration, IERC721 _ownerToken)
-        ERC20TransferReward(_token)
-        MultiTokenLinearVesting(_amount, _start, _duration)
-    {
+    constructor(IERC20 _token, uint128 _amount, uint64 _start, uint64 _duration, IERC721 _ownerToken) {
+        __MultiTokenLinearVesting_init(_amount, _start, _duration);
+        __ERC20TransferReward_init(_token);
         ownerToken = _ownerToken;
     }
 
@@ -21,7 +20,7 @@ contract MultiERC721TokenLinearERC20TransferVesting is ERC20TransferReward, Mult
         return ownerToken.ownerOf(_tokenId);
     }
 
-    function reward(address _beneficiary, uint96 _amount)
+    function reward(address _beneficiary, uint128 _amount)
         internal
         virtual
         override(ERC20TransferReward, MultiTokenLinearVesting)
