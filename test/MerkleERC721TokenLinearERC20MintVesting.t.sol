@@ -2,7 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
-import {MerkleERC721TokenLinearERC20MintVesting} from "../src/MerkleERC721TokenLinearERC20MintVesting.sol";
+import {
+    MerkleERC721TokenLinearERC20MintVesting,
+    MerkleERC721TokenLinearERC20MintVestingStandalone
+} from "../src/MerkleERC721TokenLinearERC20MintVesting.sol";
 import {ERC20Mock, IERC20Mintable} from "./mocks/ERC20Mock.sol";
 import {ERC721Mock, IERC721} from "./mocks/ERC721Mock.sol";
 
@@ -34,7 +37,7 @@ contract MerkleERC721TokenLinearERC20MintVestingTest is Test {
         returns (MerkleERC721TokenLinearERC20MintVesting vesting, uint96 expected)
     {
         vm.assume(info.duration != 0 && block.timestamp > info.timeAgoStarted);
-        vesting = new MerkleERC721TokenLinearERC20MintVesting(
+        vesting = new MerkleERC721TokenLinearERC20MintVestingStandalone(
             erc20, info.amount, uint64(block.timestamp - info.timeAgoStarted), info.duration, merkletreeRoot, erc721
         );
         if (info.timePassed > info.duration) {
@@ -84,22 +87,14 @@ contract MerkleERC721TokenLinearERC20MintVestingTest is Test {
         vm.assertEq(vesting.releasable(tokenId), expected);
     }
 
-    function test_erc20minted(
-        uint256 tokenId,
-        VestingInfo memory info,
-        address beneficiary,
-        MerkleInfo memory merkleInfo
-    ) public {
-        (, uint96 expected) = release(tokenId, info, beneficiary, merkleInfo);
-        vm.assertEq(erc20.balanceOf(beneficiary), expected);
-    }
-
-    function test_released(uint256 tokenId, VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo)
+    function test_release(uint256 tokenId, VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo)
         public
     {
         (MerkleERC721TokenLinearERC20MintVesting vesting, uint96 expected) =
             release(tokenId, info, beneficiary, merkleInfo);
+        vm.assertEq(erc20.balanceOf(beneficiary), expected);
         vm.assertEq(vesting.released(tokenId), expected);
+        vm.assertEq(vesting.releasable(tokenId), 0);
     }
 
     function test_beforeStart(uint256 tokenId, uint80 amount, uint16 duration, uint16 startsIn, address beneficiary)
@@ -107,14 +102,14 @@ contract MerkleERC721TokenLinearERC20MintVestingTest is Test {
     {
         vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         vm.assume(duration != 0);
-        MerkleERC721TokenLinearERC20MintVesting vesting = new MerkleERC721TokenLinearERC20MintVesting(
+        MerkleERC721TokenLinearERC20MintVesting vesting = new MerkleERC721TokenLinearERC20MintVestingStandalone(
             erc20, amount, uint64(block.timestamp + startsIn), duration, bytes32(0), erc721
         );
         erc721.mint(beneficiary, tokenId);
         vm.assertEq(vesting.releasable(tokenId), 0);
     }
 
-    function test_token(
+    function test_init(
         IERC20Mintable token,
         uint128 amount,
         uint64 start,
@@ -122,61 +117,15 @@ contract MerkleERC721TokenLinearERC20MintVestingTest is Test {
         bytes32 merkletreeRoot,
         IERC721 ownerToken
     ) public {
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, ownerToken);
+        MerkleERC721TokenLinearERC20MintVesting vesting = new MerkleERC721TokenLinearERC20MintVestingStandalone(
+            token, amount, start, duration, merkletreeRoot, ownerToken
+        );
         vm.assertEq(address(vesting.token()), address(token));
-    }
-
-    function test_amount(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot,
-        IERC721 ownerToken
-    ) public {
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, ownerToken);
         vm.assertEq(vesting.amount(), amount);
-    }
-
-    function test_start(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot,
-        IERC721 ownerToken
-    ) public {
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, ownerToken);
         vm.assertEq(vesting.start(), start);
-    }
-
-    function test_duration(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot,
-        IERC721 ownerToken
-    ) public {
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, ownerToken);
         vm.assertEq(vesting.duration(), duration);
-    }
-
-    function test_merkletreeRoot(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot,
-        IERC721 ownerToken
-    ) public {
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, ownerToken);
         vm.assertEq(vesting.merkletreeRoot(), merkletreeRoot);
+        vm.assertEq(address(vesting.ownerToken()), address(ownerToken));
     }
 
     function test_beneficiary(
@@ -189,8 +138,9 @@ contract MerkleERC721TokenLinearERC20MintVestingTest is Test {
         address beneficiary
     ) public {
         vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
-        MerkleERC721TokenLinearERC20MintVesting vesting =
-            new MerkleERC721TokenLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot, erc721);
+        MerkleERC721TokenLinearERC20MintVesting vesting = new MerkleERC721TokenLinearERC20MintVestingStandalone(
+            token, amount, start, duration, merkletreeRoot, erc721
+        );
         erc721.mint(beneficiary, tokenId);
         vm.assertEq(vesting.beneficiary(tokenId), beneficiary);
     }

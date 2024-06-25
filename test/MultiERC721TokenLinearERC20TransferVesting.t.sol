@@ -2,7 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
-import {MultiERC721TokenLinearERC20TransferVesting} from "../src/MultiERC721TokenLinearERC20TransferVesting.sol";
+import {
+    MultiERC721TokenLinearERC20TransferVesting,
+    MultiERC721TokenLinearERC20TransferVestingStandalone
+} from "../src/MultiERC721TokenLinearERC20TransferVesting.sol";
 import {ERC20Mock, IERC20} from "./mocks/ERC20Mock.sol";
 import {ERC721Mock, IERC721} from "./mocks/ERC721Mock.sol";
 
@@ -20,7 +23,7 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
         returns (MultiERC721TokenLinearERC20TransferVesting vesting, uint96 expected)
     {
         vm.assume(duration != 0 && block.timestamp > timeAgoStarted);
-        vesting = new MultiERC721TokenLinearERC20TransferVesting(
+        vesting = new MultiERC721TokenLinearERC20TransferVestingStandalone(
             erc20, amount, uint64(block.timestamp - timeAgoStarted), duration, erc721
         );
         if (timePassed > duration) {
@@ -47,7 +50,7 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
         vm.assertEq(vesting.releasable(tokenId), expected);
     }
 
-    function test_erc20minted(
+    function test_release(
         uint256 tokenId,
         uint80 amount,
         uint16 duration,
@@ -61,22 +64,8 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
         erc721.mint(beneficiary, tokenId);
         vesting.release(tokenId);
         vm.assertEq(erc20.balanceOf(beneficiary), expected);
-    }
-
-    function test_released(
-        uint256 tokenId,
-        uint80 amount,
-        uint16 duration,
-        uint16 timePassed,
-        uint16 timeAgoStarted,
-        address beneficiary
-    ) public {
-        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
-        (MultiERC721TokenLinearERC20TransferVesting vesting, uint96 expected) =
-            getVesting(amount, duration, timePassed, timeAgoStarted);
-        erc721.mint(beneficiary, tokenId);
-        vesting.release(tokenId);
         vm.assertEq(vesting.released(tokenId), expected);
+        vm.assertEq(vesting.releasable(tokenId), 0);
     }
 
     function test_beforeStart(uint256 tokenId, uint80 amount, uint16 duration, uint16 startsIn, address beneficiary)
@@ -84,7 +73,7 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
     {
         vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         vm.assume(duration != 0);
-        MultiERC721TokenLinearERC20TransferVesting vesting = new MultiERC721TokenLinearERC20TransferVesting(
+        MultiERC721TokenLinearERC20TransferVesting vesting = new MultiERC721TokenLinearERC20TransferVestingStandalone(
             erc20, amount, uint64(block.timestamp + startsIn), duration, erc721
         );
         erc20.mint(address(vesting), type(uint256).max);
@@ -92,28 +81,14 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
         vm.assertEq(vesting.releasable(tokenId), 0);
     }
 
-    function test_token(IERC20 token, uint128 amount, uint64 start, uint64 duration, IERC721 ownerToken) public {
+    function test_init(IERC20 token, uint128 amount, uint64 start, uint64 duration, IERC721 ownerToken) public {
         MultiERC721TokenLinearERC20TransferVesting vesting =
-            new MultiERC721TokenLinearERC20TransferVesting(token, amount, start, duration, ownerToken);
+            new MultiERC721TokenLinearERC20TransferVestingStandalone(token, amount, start, duration, ownerToken);
         vm.assertEq(address(vesting.token()), address(token));
-    }
-
-    function test_amount(IERC20 token, uint128 amount, uint64 start, uint64 duration, IERC721 ownerToken) public {
-        MultiERC721TokenLinearERC20TransferVesting vesting =
-            new MultiERC721TokenLinearERC20TransferVesting(token, amount, start, duration, ownerToken);
         vm.assertEq(vesting.amount(), amount);
-    }
-
-    function test_start(IERC20 token, uint128 amount, uint64 start, uint64 duration, IERC721 ownerToken) public {
-        MultiERC721TokenLinearERC20TransferVesting vesting =
-            new MultiERC721TokenLinearERC20TransferVesting(token, amount, start, duration, ownerToken);
         vm.assertEq(vesting.start(), start);
-    }
-
-    function test_duration(IERC20 token, uint128 amount, uint64 start, uint64 duration, IERC721 ownerToken) public {
-        MultiERC721TokenLinearERC20TransferVesting vesting =
-            new MultiERC721TokenLinearERC20TransferVesting(token, amount, start, duration, ownerToken);
         vm.assertEq(vesting.duration(), duration);
+        vm.assertEq(address(vesting.ownerToken()), address(ownerToken));
     }
 
     function test_beneficiary(
@@ -126,7 +101,7 @@ contract MultiERC721TokenLinearERC20TransferVestingTest is Test {
     ) public {
         vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         MultiERC721TokenLinearERC20TransferVesting vesting =
-            new MultiERC721TokenLinearERC20TransferVesting(token, amount, start, duration, erc721);
+            new MultiERC721TokenLinearERC20TransferVestingStandalone(token, amount, start, duration, erc721);
         erc721.mint(beneficiary, tokenId);
         vm.assertEq(vesting.beneficiary(tokenId), beneficiary);
     }

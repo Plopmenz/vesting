@@ -2,7 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {Test, console2} from "../lib/forge-std/src/Test.sol";
-import {MerkleAddressLinearERC20MintVesting} from "../src/MerkleAddressLinearERC20MintVesting.sol";
+import {
+    MerkleAddressLinearERC20MintVesting,
+    MerkleAddressLinearERC20MintVestingStandalone
+} from "../src/MerkleAddressLinearERC20MintVesting.sol";
 import {ERC20Mock, IERC20Mintable} from "./mocks/ERC20Mock.sol";
 
 import {Merkle} from "../lib/murky/src/Merkle.sol";
@@ -31,7 +34,7 @@ contract MerkleAddressLinearERC20MintVestingTest is Test {
         returns (MerkleAddressLinearERC20MintVesting vesting, uint96 expected)
     {
         vm.assume(info.duration != 0 && block.timestamp > info.timeAgoStarted);
-        vesting = new MerkleAddressLinearERC20MintVesting(
+        vesting = new MerkleAddressLinearERC20MintVestingStandalone(
             erc20, info.amount, uint64(block.timestamp - info.timeAgoStarted), info.duration, merkletreeRoot
         );
         if (info.timePassed > info.duration) {
@@ -77,19 +80,16 @@ contract MerkleAddressLinearERC20MintVestingTest is Test {
         vm.assertEq(vesting.releasable(beneficiary), expected);
     }
 
-    function test_erc20minted(VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo) public {
-        (, uint96 expected) = release(info, beneficiary, merkleInfo);
-        vm.assertEq(erc20.balanceOf(beneficiary), expected);
-    }
-
-    function test_released(VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo) public {
+    function test_release(VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo) public {
         (MerkleAddressLinearERC20MintVesting vesting, uint96 expected) = release(info, beneficiary, merkleInfo);
+        vm.assertEq(erc20.balanceOf(beneficiary), expected);
         vm.assertEq(vesting.released(beneficiary), expected);
+        vm.assertEq(vesting.releasable(beneficiary), 0);
     }
 
     function test_beforeStart(uint80 amount, uint16 duration, uint16 startsIn, address beneficiary) public {
         vm.assume(duration != 0);
-        MerkleAddressLinearERC20MintVesting vesting = new MerkleAddressLinearERC20MintVesting(
+        MerkleAddressLinearERC20MintVesting vesting = new MerkleAddressLinearERC20MintVestingStandalone(
             erc20, amount, uint64(block.timestamp + startsIn), duration, bytes32(0)
         );
         vm.assertEq(vesting.releasable(beneficiary), 0);
@@ -99,57 +99,12 @@ contract MerkleAddressLinearERC20MintVestingTest is Test {
         public
     {
         MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
+            new MerkleAddressLinearERC20MintVestingStandalone(token, amount, start, duration, merkletreeRoot);
         vm.assertEq(address(vesting.token()), address(token));
-    }
-
-    function test_amount(IERC20Mintable token, uint128 amount, uint64 start, uint64 duration, bytes32 merkletreeRoot)
-        public
-    {
-        MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
         vm.assertEq(vesting.amount(), amount);
-    }
-
-    function test_start(IERC20Mintable token, uint128 amount, uint64 start, uint64 duration, bytes32 merkletreeRoot)
-        public
-    {
-        MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
         vm.assertEq(vesting.start(), start);
-    }
-
-    function test_duration(IERC20Mintable token, uint128 amount, uint64 start, uint64 duration, bytes32 merkletreeRoot)
-        public
-    {
-        MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
         vm.assertEq(vesting.duration(), duration);
-    }
-
-    function test_merkletreeRoot(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot
-    ) public {
-        MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
         vm.assertEq(vesting.merkletreeRoot(), merkletreeRoot);
-    }
-
-    function test_beneficiary(
-        IERC20Mintable token,
-        uint128 amount,
-        uint64 start,
-        uint64 duration,
-        bytes32 merkletreeRoot,
-        address beneficiary
-    ) public {
-        MerkleAddressLinearERC20MintVesting vesting =
-            new MerkleAddressLinearERC20MintVesting(token, amount, start, duration, merkletreeRoot);
-        vm.assertEq(vesting.beneficiary(beneficiary), beneficiary);
     }
 
     function test_notPartOfTree(VestingInfo memory info, address beneficiary, MerkleInfo memory merkleInfo) public {

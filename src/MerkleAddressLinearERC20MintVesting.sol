@@ -1,27 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+import {Initializable} from "../lib/openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
+
+import {MerkleAddressLinearVesting} from "./vesting/extensions/MerkleAddressLinearVesting.sol";
 import {ERC20MintReward, IERC20Mintable} from "./rewards/ERC20MintReward.sol";
-import {MerkleAddressLinearVesting} from "./vesting/MerkleAddressLinearVesting.sol";
 
-import {IERC721} from "../lib/openzeppelin-contracts/contracts/token/ERC721/IERC721.sol";
-
-contract MerkleAddressLinearERC20MintVesting is ERC20MintReward, MerkleAddressLinearVesting {
-    constructor(IERC20Mintable _token, uint128 _amount, uint64 _start, uint64 _duration, bytes32 _merkletreeRoot) {
+contract MerkleAddressLinearERC20MintVesting is MerkleAddressLinearVesting, ERC20MintReward {
+    function __MerkleAddressLinearERC20MintVesting_init(
+        IERC20Mintable _token,
+        uint128 _amount,
+        uint64 _start,
+        uint64 _duration,
+        bytes32 _merkletreeRoot
+    ) internal {
         __MerkleAddressLinearVesting_init(_amount, _start, _duration, _merkletreeRoot);
         __ERC20MintReward_init(_token);
     }
+}
 
-    /// @notice Getter for the address that will receive the tokens.
-    function beneficiary(address _account) public view virtual override returns (address) {
-        return _account;
+contract MerkleAddressLinearERC20MintVestingStandalone is MerkleAddressLinearERC20MintVesting {
+    constructor(IERC20Mintable _token, uint128 _amount, uint64 _start, uint64 _duration, bytes32 _merkletreeRoot) {
+        __MerkleAddressLinearERC20MintVesting_init(_token, _amount, _start, _duration, _merkletreeRoot);
+    }
+}
+
+contract MerkleAddressLinearERC20MintVestingProxy is Initializable, MerkleAddressLinearERC20MintVesting {
+    constructor() {
+        _disableInitializers();
     }
 
-    function reward(address _beneficiary, uint128 _amount)
-        internal
-        virtual
-        override(ERC20MintReward, MerkleAddressLinearVesting)
-    {
-        super.reward(_beneficiary, _amount);
+    function initialize(
+        IERC20Mintable _token,
+        uint128 _amount,
+        uint64 _start,
+        uint64 _duration,
+        bytes32 _merkletreeRoot
+    ) external initializer {
+        __MerkleAddressLinearERC20MintVesting_init(_token, _amount, _start, _duration, _merkletreeRoot);
     }
 }
