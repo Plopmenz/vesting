@@ -8,7 +8,10 @@ import {ManagerStorage} from "../storage/ManagerStorage.sol";
 abstract contract Manager is Managed {
     error SenderNotManager(address sender, address manager);
 
+    event ManagerCreated(address manager);
+
     function __Manager_init(address _manager) internal {
+        emit ManagerCreated(_manager);
         ManagerStorage.Storage storage $ = ManagerStorage.getStorage();
         $.manager = _manager;
     }

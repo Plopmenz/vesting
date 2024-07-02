@@ -22,6 +22,7 @@ contract SingleBeneficiaryLinearERC20TransferVestingStoppable is
     ) internal {
         __SingleBeneficiaryLinearERC20TransferVesting_init(_token, _amount, _start, _duration, _beneficiary);
         __Manager_init(_manager);
+        __LinearVestingStoppable_init();
     }
 }
 

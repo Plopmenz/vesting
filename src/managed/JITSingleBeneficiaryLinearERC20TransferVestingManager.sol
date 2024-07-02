@@ -11,8 +11,6 @@ import {
 import {IERC20Mintable} from "../rewards/IERC20Mintable.sol";
 
 contract JITSingleBeneficiaryLinearERC20TransferVestingManager is Ownable {
-    event VestingCreated(address vesting, uint128 amount, uint64 start, uint64 duration, address indexed beneficiary);
-
     IERC20Mintable public immutable token;
     SingleBeneficiaryLinearERC20TransferVestingProxy public immutable implementation;
 
@@ -42,7 +40,6 @@ contract JITSingleBeneficiaryLinearERC20TransferVestingManager is Ownable {
         SingleBeneficiaryLinearERC20TransferVestingProxy(vesting).initialize(
             token, _amount, _start, _duration, _beneficiary
         );
-        emit VestingCreated(vesting, _amount, _start, _duration, _beneficiary);
     }
 
     function release(uint128 _amount, uint64 _start, uint64 _duration, address _beneficiary)

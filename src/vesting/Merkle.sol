@@ -6,7 +6,10 @@ import {MerkleProof} from "../../lib/openzeppelin-contracts/contracts/utils/cryp
 import {MerkleStorage} from "../storage/MerkleStorage.sol";
 
 abstract contract Merkle {
+    event MerkleCreated(bytes32 merkletreeRoot);
+
     function __Merkle_init(bytes32 _merkletreeRoot) internal {
+        emit MerkleCreated(_merkletreeRoot);
         MerkleStorage.Storage storage $ = MerkleStorage.getStorage();
         $.merkletreeRoot = _merkletreeRoot;
     }

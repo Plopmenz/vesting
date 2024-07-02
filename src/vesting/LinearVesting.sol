@@ -6,7 +6,10 @@ import {Vesting} from "./Vesting.sol";
 import {LinearVestingStorage} from "../storage/LinearVestingStorage.sol";
 
 abstract contract LinearVesting is Vesting {
+    event LinearVestingCreated(uint128 amount, uint64 start, uint64 duration);
+
     function __LinearVesting_init(uint128 _amount, uint64 _start, uint64 _duration) internal {
+        emit LinearVestingCreated(_amount, _start, _duration);
         LinearVestingStorage.Storage storage $ = LinearVestingStorage.getStorage();
         $.amount = _amount;
         $.start = _start;

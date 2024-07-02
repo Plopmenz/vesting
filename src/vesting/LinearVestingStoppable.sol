@@ -12,6 +12,8 @@ abstract contract LinearVestingStoppable is Managed {
 
     event Stop(uint64 newDuration);
 
+    function __LinearVestingStoppable_init() internal {}
+
     function stop(uint64 newDuration) public virtual onlyManager {
         LinearVestingStorage.Storage storage $ = LinearVestingStorage.getStorage();
         if ($.start + newDuration < block.timestamp) {
