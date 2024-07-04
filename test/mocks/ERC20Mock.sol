@@ -5,7 +5,7 @@ import {ERC20, IERC20} from "../../lib/openzeppelin-contracts/contracts/token/ER
 import {IERC20Mintable} from "../../src/rewards/IERC20Mintable.sol";
 
 contract ERC20Mock is ERC20, IERC20Mintable {
-    constructor() ERC20("", "") {}
+    constructor() ERC20("Testnet Token", "TEST") {}
 
     function mint(address account, uint256 amount) external {
         _mint(account, amount);
