@@ -7,7 +7,7 @@ import {SafeERC20, IERC20} from "../../lib/openzeppelin-contracts/contracts/toke
 import {ERC20RewardStorage} from "../storage/ERC20RewardStorage.sol";
 
 abstract contract ERC20TransferReward is Reward {
-    event ERC20Released(address beneficiary, uint256 amount);
+    event ERC20Released(address indexed beneficiary, uint256 amount);
 
     function __ERC20TransferReward_init(IERC20 _token) internal {
         ERC20RewardStorage.Storage storage $ = ERC20RewardStorage.getStorage();

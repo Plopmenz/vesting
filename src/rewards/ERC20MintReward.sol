@@ -7,7 +7,7 @@ import {IERC20Mintable} from "./IERC20Mintable.sol";
 import {ERC20RewardStorage} from "../storage/ERC20RewardStorage.sol";
 
 abstract contract ERC20MintReward is Reward {
-    event ERC20Released(address beneficiary, uint256 amount);
+    event ERC20Released(address indexed beneficiary, uint256 amount);
 
     function __ERC20MintReward_init(IERC20Mintable _token) internal {
         ERC20RewardStorage.Storage storage $ = ERC20RewardStorage.getStorage();
