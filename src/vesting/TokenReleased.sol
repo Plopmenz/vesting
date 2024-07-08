@@ -15,7 +15,7 @@ abstract contract TokenReleased is Vesting, TokenBeneficiary {
     }
 
     function releasable(uint256 _tokenId) public view virtual returns (uint256) {
-        return _vestingUnlocked() - released(_tokenId);
+        return _vestingUnlocked(block.timestamp) - released(_tokenId);
     }
 
     function _release(uint256 _tokenId) internal virtual {

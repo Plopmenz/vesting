@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import {Vesting} from "./Vesting.sol";
+import {VestingBase} from "./VestingBase.sol";
 
 import {LinearVestingStorage} from "../storage/LinearVestingStorage.sol";
 
-abstract contract LinearVesting is Vesting {
+abstract contract LinearVesting is VestingBase {
     event LinearVestingCreated(uint128 amount, uint64 start, uint64 duration);
 
     function __LinearVesting_init(uint128 _amount, uint64 _start, uint64 _duration) internal {
@@ -32,13 +32,13 @@ abstract contract LinearVesting is Vesting {
     }
 
     // From Openzeppelin VestingWallet (https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v5.0/contracts/finance/VestingWallet.sol)
-    function _vestingUnlocked() internal view override returns (uint256) {
-        if (block.timestamp < start()) {
+    function _vestingUnlocked(uint256 _timestamp) internal view virtual override returns (uint256) {
+        if (_timestamp < start()) {
             return 0;
-        } else if (block.timestamp >= (start() + duration())) {
+        } else if (_timestamp >= (start() + duration())) {
             return amount();
         } else {
-            return (amount() * (block.timestamp - start())) / duration();
+            return (amount() * (_timestamp - start())) / duration();
         }
     }
 }

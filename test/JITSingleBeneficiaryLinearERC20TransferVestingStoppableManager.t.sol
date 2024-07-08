@@ -59,24 +59,28 @@ contract JITSingleBeneficiaryLinearERC20TransferVestingStoppableManagerTest is T
         vm.assertEq(vesting.releasable(), 0);
     }
 
-    function test_stop(
+    function test_stopAt(
         uint96 amount,
         uint16 duration,
         uint16 timePassed,
         uint16 timeAgoStarted,
         address beneficiary,
-        uint16 newDuration
+        uint16 stopAt,
+        uint16 afterStop
     ) public {
-        vm.assume(newDuration < duration);
         (SingleBeneficiaryLinearERC20TransferVestingStoppable vesting,, uint64 start) =
             getVesting(amount, duration, timePassed, timeAgoStarted, beneficiary);
-        bool invalid = timeAgoStarted + timePassed > newDuration;
+        bool invalid = block.timestamp > stopAt;
         if (invalid) {
             vm.expectRevert();
         }
-        manager.stop(amount, start, duration, beneficiary, newDuration);
+        manager.stopAt(amount, start, duration, beneficiary, stopAt);
         if (!invalid) {
-            vm.assertEq(vesting.duration(), newDuration);
+            vm.assertEq(vesting.stop(), stopAt);
+            vm.warp(stopAt);
+            uint256 releasable = vesting.releasable();
+            vm.warp(block.timestamp + afterStop);
+            vm.assertEq(vesting.releasable(), releasable);
         }
     }
 
@@ -86,9 +90,9 @@ contract JITSingleBeneficiaryLinearERC20TransferVestingStoppableManagerTest is T
         uint64 duration,
         address beneficiary,
         address executor,
-        uint64 newDuration
+        uint64 stopAt
     ) public {
-        vm.assume(newDuration < duration);
+        vm.assume(stopAt >= block.timestamp);
 
         vm.assume(executor != address(this));
         vm.prank(executor);
@@ -98,6 +102,6 @@ contract JITSingleBeneficiaryLinearERC20TransferVestingStoppableManagerTest is T
         manager.createVesting(amount, start, duration, beneficiary);
         vm.prank(executor);
         vm.expectRevert();
-        manager.stop(amount, start, duration, beneficiary, newDuration);
+        manager.stopAt(amount, start, duration, beneficiary, stopAt);
     }
 }

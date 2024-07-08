@@ -81,7 +81,7 @@ contract MerkleERC721TokenLinearERC20TransferVestingTest is Test {
         vesting.release(proof, tokenId);
     }
 
-    function test_linearVesting(uint256 tokenId, VestingInfo memory info, address beneficiary) public {
+    function test_releasable(uint256 tokenId, VestingInfo memory info, address beneficiary) public {
         vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
         (MerkleERC721TokenLinearERC20TransferVesting vesting, uint96 expected) = getVesting(info, bytes32(0));
         erc721.mint(beneficiary, tokenId);

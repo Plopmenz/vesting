@@ -32,23 +32,12 @@ contract SingleBeneficiaryLinearERC20TransferVestingTest is Test {
         erc20.mint(address(vesting), type(uint256).max);
     }
 
-    function test_releasable(
-        uint96 amount,
-        uint16 duration,
-        uint16 timePassed,
-        uint16 timeAgoStarted,
-        address beneficiary
-    ) public {
-        (SingleBeneficiaryLinearERC20TransferVesting vesting, uint128 expected) =
-            getVesting(amount, duration, timePassed, timeAgoStarted, beneficiary);
-        vm.assertEq(vesting.releasable(), expected);
-    }
-
     function test_release(uint96 amount, uint16 duration, uint16 timePassed, uint16 timeAgoStarted, address beneficiary)
         public
     {
         (SingleBeneficiaryLinearERC20TransferVesting vesting, uint128 expected) =
             getVesting(amount, duration, timePassed, timeAgoStarted, beneficiary);
+        vm.assertEq(vesting.releasable(), expected);
         vesting.release();
         vm.assertEq(erc20.balanceOf(beneficiary), expected);
         vm.assertEq(vesting.released(), expected);

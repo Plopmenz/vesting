@@ -53,12 +53,12 @@ contract JITSingleBeneficiaryLinearERC20TransferVestingStoppableManager is Ownab
         vesting.release();
     }
 
-    function stop(uint128 _amount, uint64 _start, uint64 _duration, address _beneficiary, uint64 _newDuration)
+    function stopAt(uint128 _amount, uint64 _start, uint64 _duration, address _beneficiary, uint64 _stopAt)
         external
         onlyOwner
     {
         SingleBeneficiaryLinearERC20TransferVestingStoppable vesting =
             SingleBeneficiaryLinearERC20TransferVestingStoppable(getAddress(_amount, _start, _duration, _beneficiary));
-        vesting.stop(_newDuration);
+        vesting.stopAt(_stopAt);
     }
 }

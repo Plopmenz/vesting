@@ -14,7 +14,7 @@ abstract contract Released is Vesting {
     }
 
     function releasable() public view virtual returns (uint256) {
-        return _vestingUnlocked() - released();
+        return _vestingUnlocked(block.timestamp) - released();
     }
 
     function _release(address _account) internal virtual {

@@ -76,7 +76,7 @@ contract MerkleAddressLinearERC20TransferVestingTest is Test {
         vesting.release(proof, beneficiary);
     }
 
-    function test_linearVesting(VestingInfo memory info, address beneficiary) public {
+    function test_releasable(VestingInfo memory info, address beneficiary) public {
         (MerkleAddressLinearERC20TransferVesting vesting, uint96 expected) = getVesting(info, bytes32(0));
         vm.assertEq(vesting.releasable(beneficiary), expected);
     }

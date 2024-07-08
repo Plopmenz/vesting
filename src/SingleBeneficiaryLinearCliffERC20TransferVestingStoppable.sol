@@ -6,23 +6,27 @@ import {Initializable} from "../lib/openzeppelin-contracts/contracts/proxy/utils
 import {SingleBeneficiaryLinearERC20TransferVesting, IERC20} from "./SingleBeneficiaryLinearERC20TransferVesting.sol";
 import {Vesting} from "./vesting/Vesting.sol";
 import {LinearVesting} from "./vesting/LinearVesting.sol";
+import {Cliff} from "./vesting/Cliff.sol";
 import {Manager} from "./vesting/Manager.sol";
 import {Stoppable} from "./vesting/Stoppable.sol";
 
-contract SingleBeneficiaryLinearERC20TransferVestingStoppable is
+contract SingleBeneficiaryLinearCliffERC20TransferVestingStoppable is
     SingleBeneficiaryLinearERC20TransferVesting,
+    Cliff,
     Manager,
     Stoppable
 {
-    function __SingleBeneficiaryLinearERC20TransferVestingStoppable_init(
+    function __SingleBeneficiaryLinearCliffERC20TransferVestingStoppable_init(
         IERC20 _token,
         uint128 _amount,
         uint64 _start,
         uint64 _duration,
         address _beneficiary,
+        uint64 _cliff,
         address _manager
     ) internal {
         __SingleBeneficiaryLinearERC20TransferVesting_init(_token, _amount, _start, _duration, _beneficiary);
+        __Cliff_init(_cliff);
         __Manager_init(_manager);
         __Stoppable_init();
     }
@@ -30,15 +34,15 @@ contract SingleBeneficiaryLinearERC20TransferVestingStoppable is
     function _vestingUnlocked(uint256 _timestamp)
         internal
         view
-        override(Stoppable, LinearVesting, Vesting)
+        override(Stoppable, Cliff, LinearVesting, Vesting)
         returns (uint256)
     {
         return super._vestingUnlocked(_timestamp);
     }
 }
 
-contract SingleBeneficiaryLinearERC20TransferVestingStoppableStandalone is
-    SingleBeneficiaryLinearERC20TransferVestingStoppable
+contract SingleBeneficiaryLinearCliffERC20TransferVestingStoppableStandalone is
+    SingleBeneficiaryLinearCliffERC20TransferVestingStoppable
 {
     constructor(
         IERC20 _token,
@@ -46,17 +50,18 @@ contract SingleBeneficiaryLinearERC20TransferVestingStoppableStandalone is
         uint64 _start,
         uint64 _duration,
         address _beneficiary,
+        uint64 _cliff,
         address _manager
     ) {
-        __SingleBeneficiaryLinearERC20TransferVestingStoppable_init(
-            _token, _amount, _start, _duration, _beneficiary, _manager
+        __SingleBeneficiaryLinearCliffERC20TransferVestingStoppable_init(
+            _token, _amount, _start, _duration, _beneficiary, _cliff, _manager
         );
     }
 }
 
-contract SingleBeneficiaryLinearERC20TransferVestingStoppableProxy is
+contract SingleBeneficiaryLinearCliffERC20TransferVestingStoppableProxy is
     Initializable,
-    SingleBeneficiaryLinearERC20TransferVestingStoppable
+    SingleBeneficiaryLinearCliffERC20TransferVestingStoppable
 {
     constructor() {
         _disableInitializers();
@@ -68,10 +73,11 @@ contract SingleBeneficiaryLinearERC20TransferVestingStoppableProxy is
         uint64 _start,
         uint64 _duration,
         address _beneficiary,
+        uint64 _cliff,
         address _manager
     ) external initializer {
-        __SingleBeneficiaryLinearERC20TransferVestingStoppable_init(
-            _token, _amount, _start, _duration, _beneficiary, _manager
+        __SingleBeneficiaryLinearCliffERC20TransferVestingStoppable_init(
+            _token, _amount, _start, _duration, _beneficiary, _cliff, _manager
         );
     }
 }

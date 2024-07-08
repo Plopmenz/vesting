@@ -34,21 +34,6 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
         vm.warp(block.timestamp + timePassed);
     }
 
-    function test_linearVesting(
-        uint256 tokenId,
-        uint80 amount,
-        uint16 duration,
-        uint16 timePassed,
-        uint16 timeAgoStarted,
-        address beneficiary
-    ) public {
-        vm.assume(beneficiary.code.length == 0 && beneficiary != address(0)); // ERC721 receiver
-        (MultiERC721TokenLinearERC20MintVesting vesting, uint96 expected) =
-            getVesting(amount, duration, timePassed, timeAgoStarted);
-        erc721.mint(beneficiary, tokenId);
-        vm.assertEq(vesting.releasable(tokenId), expected);
-    }
-
     function test_release(
         uint256 tokenId,
         uint80 amount,
@@ -61,6 +46,7 @@ contract MultiERC721TokenLinearERC20MintVestingTest is Test {
         (MultiERC721TokenLinearERC20MintVesting vesting, uint96 expected) =
             getVesting(amount, duration, timePassed, timeAgoStarted);
         erc721.mint(beneficiary, tokenId);
+        vm.assertEq(vesting.releasable(tokenId), expected);
         vesting.release(tokenId);
         vm.assertEq(erc20.balanceOf(beneficiary), expected);
         vm.assertEq(vesting.released(tokenId), expected);

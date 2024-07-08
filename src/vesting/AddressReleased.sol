@@ -14,7 +14,7 @@ abstract contract AddressReleased is Vesting {
     }
 
     function releasable(address _account) public view virtual returns (uint256) {
-        return _vestingUnlocked() - released(_account);
+        return _vestingUnlocked(block.timestamp) - released(_account);
     }
 
     function _release(address _account) internal virtual {
